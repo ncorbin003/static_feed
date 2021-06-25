@@ -8,8 +8,7 @@ from flask import Flask, render_template, Response
 # from flask import jsonify
 # from flask import redirect
 # from flask import session
-# from flask import url_for
-# from flask_ngrok import run_with_ngrok
+from flask import url_for, redirect
 # from authlib.integrations.flask_client import OAuth
 # from six.moves.urllib.parse import urlencode
 #
@@ -20,7 +19,7 @@ from flask import Flask, redirect, url_for
 from flask_dance.contrib.github import make_github_blueprint, github
 
 app = Flask(__name__, static_folder='static')
-app.secret_key = os.environ.get("FLASK_SECRET_KEY", "supersekrit")
+app.secret_key = os.environ.get("FLASK_SECRET_KEY", 'supersekrit')
 app.config["GITHUB_OAUTH_CLIENT_ID"] = os.environ.get("GITHUB_OAUTH_CLIENT_ID")
 app.config["GITHUB_OAUTH_CLIENT_SECRET"] = os.environ.get("GITHUB_OAUTH_CLIENT_SECRET")
 github_bp = make_github_blueprint()
@@ -35,7 +34,7 @@ def login():
         return redirect(url_for("github.login"))
     resp = github.get("/user")
     assert resp.ok
-    return render_template("success.html")
+    return "You are @{login} on GitHub".format(login=resp.json()["login"])
 
 
 def gen_frames():
