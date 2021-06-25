@@ -1,0 +1,15 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Video Example</title>
+</head>
+<body>
+  <h2>Nicola Corbin static video</h2>
+  <video width="320" height="240" controls>
+    <source src={{ url_for('static', filename="video_for_static.mp4") }} type="video/mp4">
+    Your browser does not support the video tag.
+  </video>
+<h2>Link to live feed</h2>
+  <a href={{url_for('video_feed')}}> Live Feed </a>
+</body>
+</html>
