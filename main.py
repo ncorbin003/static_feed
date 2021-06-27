@@ -1,22 +1,15 @@
-# from functools import wraps
-# import json
-# from os import environ as env
-# from werkzeug.exceptions import HTTPException
-#
+
 from dotenv import load_dotenv, find_dotenv
 from flask import Flask, render_template, Response
-# from flask import jsonify
-# from flask import redirect
-# from flask import session
-from flask import url_for, redirect
-# from authlib.integrations.flask_client import OAuth
-# from six.moves.urllib.parse import urlencode
-#
-# import constants
+from sys import stdout
 import cv2
 import os
 from flask import Flask, redirect, url_for
+from flask_socketio import SocketIO, emit
+from camera import Camera
 from flask_dance.contrib.github import make_github_blueprint, github
+from utils import base64_to_pil_image, pil_image_to_base64
+
 
 app = Flask(__name__, static_folder='static')
 app.secret_key = os.environ.get("FLASK_SECRET_KEY", 'supersekrit')
@@ -25,7 +18,24 @@ app.config["GITHUB_OAUTH_CLIENT_SECRET"] = os.environ.get("GITHUB_OAUTH_CLIENT_S
 github_bp = make_github_blueprint()
 app.register_blueprint(github_bp, url_prefix="/login")
 
-camera = cv2.VideoCapture(0)
+socketio = SocketIO(app)
+camera = Camera()
+
+@socketio.on('input image', namespace='/test')
+def test_message(input):
+    input = input.split(",")[1]
+    camera.enqueue_input(input)
+    image_data = input # Do your magical Image processing here!!
+    #image_data = image_data.decode("utf-8")
+    image_data = "data:image/jpeg;base64," + image_data
+    print("OUTPUT " + image_data)
+    emit('out-image-event', {'image_data': image_data}, namespace='/test')
+    #camera.enqueue_input(base64_to_pil_image(input))
+
+
+@socketio.on('connect', namespace='/test')
+def test_connect():
+    app.logger.info("client connected")
 
 
 @app.route("/login")
@@ -34,25 +44,17 @@ def login():
         return redirect(url_for("github.login"))
     resp = github.get("/user")
     assert resp.ok
-    return render_template("success.html")
+    return render_template("streamer.html")
 
 
-def gen_frames():
+def gen():
+    """Video streaming generator function."""
+
+    app.logger.info("starting to generate frames!")
     while True:
-        #success: a bool data type, returns true if Python is able to read the VideoCapture() object
-        #frame: a numpy array, represents the first image that the video captures
-        #read(): returns a bool. If frame is read correctly, it will be True
-        success, frame = camera.read()
-        if not success:
-            break
-        else:
-            #cv2.imencode(): function is to convert(encode) the image format into streaming data and assign it to
-            # memory cache. it is mainly used for compressing image data format to facilitate network transmission
-            #yield keyword: lets the execution to continue and keeps on generating frame until alive
-            ret, buffer = cv2.imencode('.jpg', frame)
-            frame = buffer.tobytes()
-            yield(b'--frame\r\n'
-                   b'Content-Type: image/jpeg\r\n\r\n' + frame + b'\r\n')
+        frame = camera.get_frame() #pil_image_to_base64(camera.get_frame())
+        yield (b'--frame\r\n'
+               b'Content-Type: image/jpeg\r\n\r\n' + frame + b'\r\n')
 
 @app.route("/")
 def index():
@@ -60,11 +62,12 @@ def index():
 
 @app.route("/video_feed")
 def video_feed():
-   return Response(gen_frames(), mimetype='multipart/x-mixed-replace; boundary=frame')
+   return Response(gen(), mimetype='multipart/x-mixed-replace; boundary=frame')
 
 @app.route("/streamer")
 def streamer():
    return render_template("streamer.html")
 
 if __name__ == '__main__':
-   app.run(debug = True,host="0.0.0.0",port=8000)
+    socketio.run(app, host="0.0.0.0", port=8000)
+   #app.run(debug = True,host="0.0.0.0",port=8000)
