@@ -44,7 +44,7 @@ def login():
         return redirect(url_for("github.login"))
     resp = github.get("/user")
     assert resp.ok
-    return render_template("streamer.html")
+    return render_template("success.html")
 
 
 def gen():
