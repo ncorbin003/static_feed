@@ -29,3 +29,8 @@ Pillow~=8.2.0
 Flask-SocketIO==4.3.1
 python-engineio==3.13.2
 python-socketio==4.6.0
+Flask-Sockets==0.2.0
+gevent~=21.1.2
+gevent-websocket==0.9.5
+redis~=2.10.5
+utils~=1.0.1
