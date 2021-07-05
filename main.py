@@ -10,7 +10,6 @@ from flask import Flask, redirect, url_for
 from flask_socketio import SocketIO, emit
 from camera import Camera
 from flask_dance.contrib.github import make_github_blueprint, github
-from flask_sockets import Sockets
 from utils import base64_to_pil_image, pil_image_to_base64
 
 
@@ -46,19 +45,15 @@ def gen():
 def index():
    return render_template("index.html")
 
-# @app.route("/video_feed")
-# def video_feed():
-#    return Response(gen(), mimetype='multipart/x-mixed-replace; boundary=frame')
+
 
 @app.route("/streamer")
 def streamer():
+    if not github.authorized:
+        return redirect(url_for("github.login"))
+    resp = github.get("/user")
+    assert resp.ok
     return render_template("streamer.html")
-
-
-
-@app.route('/')
-def hello():
-    return render_template('index.html')
 
 
 
