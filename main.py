@@ -41,6 +41,7 @@ def gen():
                b'Content-Type: image/jpeg\r\n\r\n' + frame + b'\r\n')
 
 @app.route("/")
+@app.route("/home")
 def index():
    return render_template("index.html")
 
