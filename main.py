@@ -30,7 +30,7 @@ def login():
         return redirect(url_for("github.login"))
     resp = github.get("/user")
     assert resp.ok
-    return redirect("/streamer")
+    return render_template("streamer.html")
 
 
 def gen():
@@ -52,8 +52,6 @@ def index():
 
 @app.route("/streamer")
 def streamer():
-    if not github.authorized:
-        return redirect(url_for("github.login"))
     return render_template("streamer.html")
 
 
