@@ -47,9 +47,9 @@ def index():
 
 
 
-# @app.route("/streamer")
-# def streamer():
-#     return render_template("streamer.html")
+@app.route("/streamer")
+def streamer():
+    return render_template("streamer.html")
 
 
 
