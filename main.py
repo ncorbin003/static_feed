@@ -9,7 +9,6 @@ app.config["GITHUB_OAUTH_CLIENT_ID"] = os.environ.get("GITHUB_OAUTH_CLIENT_ID")
 app.config["GITHUB_OAUTH_CLIENT_SECRET"] = os.environ.get("GITHUB_OAUTH_CLIENT_SECRET")
 github_bp = make_github_blueprint()
 app.register_blueprint(github_bp, url_prefix="/login")
-ip_url=os.environ.get('IP_URL')
 
 
 @app.route("/login")
@@ -18,7 +17,7 @@ def login():
         return redirect(url_for("github.login"))
     resp = github.get("/user")
     assert resp.ok
-    return render_template("streamer.html", value=ip_url)
+    return render_template("streamer.html")
 
 
 @app.route("/")
